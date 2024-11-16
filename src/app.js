@@ -68,19 +68,30 @@ const app=express();
 
 
 //****Handling the routers****//
-app.use("/user",[(req,res,next)=>{
+// app.use("/routers",[r1,r2,r3,r4,r5])
+// res.send("1st response") are called request handlers
+//("/user",[(req,res,next)=>{
+    // res.send("1st response")
+    //} this whole is called middlewares
+  
+app.get("/user",[(req,res,next)=>{
     // res.send("1st response")
     next();
-    // res.send("1st response")
+  
 },
  (req,res,next)=>{
 // res.send("2nd response")
 next();
-},(req,res)=>{
-    res.send("3nd response")
-    },(req,res)=>{
-        res.send("4nd response")
+},(req,res,next)=>{
+    // res.send("3nd response")
+    next();
+    },(req,res,next)=>{
+        // res.send("4nd response")
+        next();
         }])
+        app.get("/user",(req,res)=>{
+            res.send("5th response by get method")
+        })
 app.listen(3000,()=>{
     console.log("Server running successfully on 3000..."); 
 })//we are listening the request.
