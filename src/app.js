@@ -2,7 +2,7 @@
 
 const express=require("express")
 const app=express();
-
+const PORT=3000;
 // app.use("/ab?c",(req,res)=>{
 //     res.send("b is optional")
 // })
@@ -73,25 +73,42 @@ const app=express();
 //("/user",[(req,res,next)=>{
     // res.send("1st response")
     //} this whole is called middlewares
-  
-app.get("/user",[(req,res,next)=>{
-    // res.send("1st response")
-    next();
-  
-},
- (req,res,next)=>{
-// res.send("2nd response")
-next();
-},(req,res,next)=>{
-    // res.send("3nd response")
-    next();
-    },(req,res,next)=>{
-        // res.send("4nd response")
-        next();
-        }])
-        app.get("/user",(req,res)=>{
-            res.send("5th response by get method")
+
+
+//***handle Auth Middleware for only all GET,Post,Patch.. request ***/
+    // const {adminauth}=require("./middlewares/auth")
+    // const {usernauth,Admin}=require("./middlewares/auth")
+
+
+    // app.use("/admin",adminauth);
+
+    // app.post("/admin/login",(req,res)=>{
+    //   res.send(" user logged in successfully")
+    // })
+        
+        // Route to get all admin data
+        // app.get("/admin/getAllData", usernauth,(req, res) => {
+        //   res.send("All data is sent");
+        // });
+        
+        // Route to delete a user
+        // app.get("/admin/deleteUser", Admin,(req, res) => {
+        //   res.send("User data deleted");
+        // });
+      app.get("/getUserData", (req, res) => {
+         //logic of Db callling and get userdata
+       
+         throw new Error("fkhahlkeh")   
+       
+         res.send("user data is sent");
+        });
+        app.use("/",(err,req,res,next)=>{
+              if(err){
+                res.status(500).send("something went wrong")
+              }
         })
-app.listen(3000,()=>{
+
+
+app.listen(PORT,()=>{
     console.log("Server running successfully on 3000..."); 
 })//we are listening the request.
