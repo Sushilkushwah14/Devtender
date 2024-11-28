@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const jwt=require("jsonwebtoken")
+const bcrypt=require("bcrypt")
 const userSchema = new mongoose.Schema(
   {
     firstName: {
@@ -76,6 +78,7 @@ userSchema.methods.getJWT = async function () {
   return token;
 };
 
+//USING THE SCHEMA METHODS TO MAKE HANDLER FUNCTIONS()
 userSchema.methods.validatePassword = async function (passwordInputByUser) {
   const user = this;
   const passwordHash = user.password;
