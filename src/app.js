@@ -1,46 +1,20 @@
-// const express=require("express")
-// const app=express();
-// const PORT=3000;
-// const {connectDB}=require("./config/database")
-// const User=require("./models/user")
-
-// app.post("/signup",async(req,res)=>{
-// //creating a new instance of a model User
-// const user=new User({
-//   firstName:"sushil",
-//   lastName:"kushwah",
-//   emailId:"sushilkushwah@gmail.com",
-//   password:"Sushil@1411",
-//   gender:"male",
-// })
-
-// await user.save();
-// res.send("user collection data is saved successfully")
-// })
-
-// connectDB()
-// .then(()=>{
-//     console.log("Database connection established...");
-//     app.listen(PORT,()=>{
-//       console.log("Server running successfully on 3000...");
-//   })//we are listening the request.
-
-// })
-// .catch((err)=>{
-//    console.error("Database cannot be connect!!")
-// })
 const express = require("express");
 const app = express();
 const PORT = 3000;
 const { connectDB } = require("./config/database");
 const User = require("./models/user");
-const user = require("./models/user");
-
+// const {user} = require("./models/user");
+const validator=require("validator")
+const {validateSignUpData}=require("./utils/validation")
+const bcrypt=require("bcrypt")
+const cookieParser=require("cookie-parser")
+const jwt=require("jsonwebtoken")
+const {userAuth}=require("./middlewares/auth")
 // app.post("/signup", async (req, res) => {
 //   try {
 //     const user = new User({
 //       firstName: "Harikrishna",
-//       lastName: "jaiiswal",
+//       lastName: "jaiiswal",  
 //       emailId: "hari@gmail.com",
 //       password: "hariiii21005",
 //       gender: "male",
@@ -56,94 +30,82 @@ const user = require("./models/user");
 
 // Middleware to parse JSON request body
 app.use(express.json());
+app.use(cookieParser())
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body); //reading the data
-  console.log(user);
-
   try {
+  //validation of data
+  validateSignUpData(req);
+  //Encrypt the password
+
+  const{firstName,lastName,emailId,password}=req.body;
+
+  const passwordHash= await bcrypt.hash(password,10)
+  console.log(passwordHash);
+  
+  //creating a new instance of the User Model
+  const user = new User({
+    firstName,
+    lastName,
+    emailId,
+    password:passwordHash,//password encrypt hoke hi jaega
+  }); //reading the data from the request send containing the sifnup data in user 
+  
     await user.save();
     res.send("data is saved in User model collection");
   } catch (error) {
     console.log("error in saving data", error.message);
-    res.status(500).send("failed to store the data");
+    res.status(400).send("ERROR : "+error.message);
   }
 });
-app.get("/users", async (req, res) => {
-  const userEmail = req.body.emailId;
-  try {
-    const users = await User.find({ emailId: userEmail });
-    if (users.length === 0) {
-      res.status(404).send("users not found");
-    } else {
-      res.send(users);
-    }
-  } catch (error) {
-    res.status(400).send("something weent wrong");
+
+app.post("/login",async(req,res)=>{
+  try{
+     const {emailId,password}=req.body
+     //validating email typed is in right formate or wrong
+     if(!validator.isEmail(emailId)){
+      throw new Error("Please give right emailid!!")
+     }
+    //checking user is present in db or not
+    const user=await User.findOne({emailId:emailId})
+    if(!user){
+      throw new Error("user Email Id is not present in Db")
+    } 
+
+    //if email id is present & checking password is right or wrong
+     const isPasswordValid= await user.isPasswordValid(password)   
+     if(isPasswordValid){
+     
+       const token=await user.getJWT()
+       console.log(token);
+       
+
+   //Add the token to cookie and send thr response back to the user by SERVER
+      res.cookie("token",token,{expires:new Date(Date.now()+365*3600) },{httpOnly:true})
+      res.send("Login successfull!!")
+     }
+     else{
+      throw new Error("Password not valid")
+     }
+
+  }catch(error){
+    res.status(400).send("ERROR : "+error.message);
   }
-});
-app.get("/user", async (req, res) => {
-  const userEmail = req.body.emailId;
-  try {
-    const user = await User.findOne({ emailId: userEmail });
-    res.send(user);
-  } catch (error) {
-    res.status(500).send("something weent wrong ,wrong email");
+})
+ 
+app.get("/profile",userAuth,async(req,res)=>{
+  try{
+  const user=req.user;
+
+  res.send(user)
+  
+  res.send("Reading cookies")
+  }   catch (error) {
+    res.status(500).send("ERROR : "+error.message);
   }
-});
-//to delete in database
-app.delete("/user", async (req, res) => {
-  const userid = req.body._id;
-  try {
-    await User.findByIdAndDelete({ userid });
-    res.send("User deleted successfully");
-  } catch (error) {
-    res.status(400).send("something weent wrong");
-  }
-});
-//to update data of the user
-app.patch("/user", async (req, res) => {
-  const userid = req.body._id;
-  const data = req.body;
-  try {
-    // const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
-    // const isUpdateAllowed = Object.keys(data).every((k) =>
-    //   ALLOWED_UPDATES.includes(k)
-    // );
-    // if (!isUpdateAllowed) {
-    //   throw new Error("Update is not allowed");
-    // }
-    if(data?.skills?.length>3){
-      throw new Error("skills are too many ")
-    }
-    //id wale main,all "data" ke andar kuch bhi update kar sakte hai
-    await User.findByIdAndUpdate({ _id: userid }, data, {
-      returnDocument: "after",
-      runValidators: true,
-    });
-    res.send("user updated successfully");
-  } catch (error) {
-    res.status(400).send("UPDATE failed" + error.message);
-  }
-});
-//to update data of the user in email
-app.patch("/user", async (req, res) => {
-  const userid = req.body._id;
-  const updateEmail = req.body.emailId;
-  try {
-    //emailid wale kitnebhi main,all "emailId:updateEmail" ke andar kuch bhi update kar sakte hai
-    await User.findByIdAndUpdate(
-      { userid },
-      { emailId: updateEmail },
-      {
-        returnDocument: "after",
-        runValidators: true,
-      }
-    );
-    res.send("user updated successfully");
-  } catch (error) {
-    res.status(400).send("UPDATE failed" + error.message);
-  }
-});
+  
+})
+
+
 
 // Connect to the database and start the server after connection
 connectDB().then(() => {

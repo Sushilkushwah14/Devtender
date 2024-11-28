@@ -1,40 +1,39 @@
- const adminauth=(req,res,next)=>{
-    console.log("Admin auth is getting checked");
-    
-    const token="1"
-    const isAdminAuthorized=token==="1";
-    if (!isAdminAuthorized) {
-        return res.status(401).send("Unauthorized access");
-      }
-    
-  console.log("Authorization passed");
-      next(); // Proceed to the next middleware or route handler
-}
 
- const usernauth=(req,res,next)=>{
-    console.log("user auth is getting checked");
-    
-    const token="2"
-    const isAdminAuthorized=token==="2";
-    if (!isAdminAuthorized) {
-        return res.status(401).send("Unauthorized user access");
-      }
-    
-      next(); // Proceed to the next middleware or route handler
+const jwt=require("jsonwebtoken");
+const User = require("../models/user");
+
+const userAuth = async (req, res, next) => {
+try{
+    // we have saved cookie in our browser and Read the token from req cookies sent to sever to validate
+    const {token}=req.cookies;//now we have token we can send it with profile request to server to validate it
+     
+    if(!token){
+        throw new Error("token id not valid")
+    }
+
+    const decodedObj=await jwt.verify(token,"DEV@Tinder$790")//returns decoded message the palyload value which is here _id
+
+    const {_id}=decodedObj
+
+    const user=await User.findById(_id)
+    if(!user){
+        throw new Error("Userr not found")
+    }
+    req.user=user;//Attaching the user with req handler that user is found
+
+    next();
+
+
 }
- const Admin=(req,res,next)=>{
-    console.log("user auth is getting checked");
-    
-    const token="3"
-    const isAdminAuthorized=token==="3";
-    if (!isAdminAuthorized) {
-        return res.status(401).send("Unauthorized user access not admin cannot delete the user data");
-      }
-    
-      next(); // Proceed to the next middleware or route handler
-}
-module.exports={
-    adminauth,
-usernauth,
-Admin,
-}
+    catch(error){
+        res.status(500).send("ERROR : "+error.message);
+    }
+
+    //
+
+};
+module.exports = {
+  
+  userAuth,
+
+};
