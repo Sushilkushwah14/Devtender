@@ -22,8 +22,6 @@ try{
     req.user=user;//Attaching the user with req handler that user is found
 
     next();
-
-
 }
     catch(error){
         res.status(500).send("ERROR : "+error.message);

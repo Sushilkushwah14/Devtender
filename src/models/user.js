@@ -69,6 +69,7 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+//we are creating the jwt token and verifying it by schema methods
 userSchema.methods.getJWT = async function () {
   const user = this; //The this keyword refers to the instance of the userSchema (a specific user document) that is calling the method getJWT after login by email and password it(user=this) get all information of that user.
 
