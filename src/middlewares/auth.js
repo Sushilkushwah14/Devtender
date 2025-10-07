@@ -1,6 +1,9 @@
 
 const jwt=require("jsonwebtoken");
-const User = require("../models/user");
+
+const {User} =require("./models/user.js");
+
+
 
 const userAuth = async (req, res, next) => {
 try{
@@ -19,7 +22,7 @@ try{
     if(!user){
         throw new Error("Userr not found")
     }
-    req.user=user;//Attaching the user with req handler that user is found
+    req.user=user;//Attaching the user(every time the new instance of user is sent ) with req handler that user is found
 
     next();
 }
@@ -29,9 +32,13 @@ try{
 
     //
 
+ 
+
 };
+
+
 module.exports = {
   
-  userAuth,
+  userAuth
 
 };

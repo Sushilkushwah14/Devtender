@@ -1,7 +1,7 @@
 const express = require("express");
-const { validateSignUpData } = require("../utils/validation");
+const { validateSignUpData } = require("../utils/validation.js");
 const validator = require("validator");
-const User = require("../models/user");
+const {User} = require("../middlewares/models/user.js");
 const bcrypt = require("bcrypt");
 
 const authRouter = express.Router();
@@ -11,7 +11,7 @@ authRouter.post("/signup", async (req, res) => {
     validateSignUpData(req);
     //Encrypt the password
 
-    const { firstName, lastName, emailId, password } = req.body;
+    const { firstName, lastName, emailId, password,skills,age,about} = req.body;
 
     const passwordHash = await bcrypt.hash(password, 10);
     console.log(passwordHash);
@@ -21,7 +21,10 @@ authRouter.post("/signup", async (req, res) => {
       firstName,
       lastName,
       emailId,
-      password: passwordHash, //password encrypt hoke hi jaega
+      password: passwordHash,
+      skills, //password encrypt hoke hi jaega
+      age,
+      about,
     }); //reading the data from the request send containing the sifnup data in user
 
     await user.save();
@@ -45,6 +48,7 @@ authRouter.post("/login", async (req, res) => {
       throw new Error("user Email Id is not present in Db");
     }
     //if email id is present & checking password is right or wrong
+    //const isPasswordValid=await bcrypt.compare(password,user.password) just checking the password is right or wrong
     const isPasswordValid = await user.validatePassword(password);
     if (isPasswordValid) {
       const token = await user.getJWT();
@@ -69,3 +73,10 @@ authRouter.post("/logout", async (req, res) => {
 });
 
 module.exports = authRouter;
+
+
+
+
+
+
+

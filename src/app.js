@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 3000;
-const { connectDB } = require("./config/database");
+const { connectDB } = require("./config/database.js");
 
 // const {user} = require("./models/user");
 
@@ -15,13 +15,18 @@ app.use(express.json());
 app.use(cookieParser());
 
 //importing routers
-const authRouter=require("./routes/auth")//signup & login 
-const profileRouter=require("./routes/profile")
+const authRouter=require("./routes/auth")//signup & login &logput
+const profileRouter=require("./routes/profile")//view,edit,forgotpassword
 const requestRouter=require("./routes/requestes")
+const userRouter=require("./routes/user.js")
+
 //Using routers after every api call
+
 app.use("/",authRouter)
 app.use("/",profileRouter)
 app.use("/",requestRouter)
+app.use("/",userRouter);
+
 
 // Connect to the database and start the server after connection
 connectDB().then(() => {

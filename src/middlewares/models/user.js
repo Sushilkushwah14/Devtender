@@ -42,20 +42,24 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      validate(value) {
-        if (!["male", "female", "others"].includes(value)) {
-          throw new Error("Gender data is not valid");
-        }
+      enum:{
+        values:["male","female","others"],
+        message:`{VALUE} is not valid gender type`
       },
+      // validate(value) {
+      //   if (!["male", "female", "others"].includes(value)) {
+      //     throw new Error("Gender data is not valid");
+      //   }
+      // },
     },
-    phototUrl: {
+    phototUrl: { 
       type: String,
       default: "https://photo.url.defaulturl.com",
-      validate(value) {
-        if (!validator.isURL(value)) {
-          throw new Error("invalid photo url :" + value);
+      validate(value){
+        if(!validator.isURL(value)){
+          throw new Error("Invalid photo url")
         }
-      },
+      }
     },
     about: {
       type: String,
@@ -71,26 +75,42 @@ const userSchema = new mongoose.Schema(
 );
 //we are creating the jwt token and verifying it by schema methods
 userSchema.methods.getJWT = async function () {
-  const user = this; //The this keyword refers to the instance of the userSchema (a specific user document) that is calling the method getJWT after login by email and password it(user=this) get all information of that user.
+  const user = this; //The this keyword refers to the instance of the userSchema (a specific user document) 
+  // that is calling the method getJWT after login by email and password it(user=this) get all 
+  // information of that user.
 
   const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$790", {
     expiresIn: "365d",
   }); //payload and secret key for only server
   return token;
+  //cosnt user=this;
+  // userSchema.methods.getJWT=async function(){
+  //        const token=await jwt.sign({_id:user._id},"hfjjhs",{})
+  // return token
+  //}
+  // const tolek=await jwt.sign({_id:user.id},"XYZ",{expiresIn : "387d"})//sign takes payload and secret key with expire time
 };
 
-//USING THE SCHEMA METHODS TO MAKE HANDLER FUNCTIONS()
+//USING THE SCHEMA METHODS TO MAKE HANDLER FUNCTIONS() or validating password
 userSchema.methods.validatePassword = async function (passwordInputByUser) {
   const user = this;
-  const passwordHash = user.password;
+  const passwordHash = user.password;//already the password is saved in hash formate at the time of singning up
   const isPasswordValid = await bcrypt.compare(
     passwordInputByUser,
     passwordHash
   );
 
   return isPasswordValid;
+  
+  // userSchema.methods.validatePassword=async function(userinputpss){
+  //   const user=this;
+  //   const passwordHash=user.password;
+  //   const isPassValid=await bcrypt.compare(userinputpss,pass)
+  // }
 };
-module.exports = mongoose.model("User", userSchema); //model name and schema
+
+const User = mongoose.model("User", userSchema);
+module.exports ={User};//model name and schema
 // user = mongoose.model("User", userSchema); //model name and schema
 // module.exports ={
 //   user,

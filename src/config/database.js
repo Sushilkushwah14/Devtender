@@ -20,6 +20,7 @@ const connectDB = async () => {
   try {
     await mongoose.connect(
       "mongodb+srv://kartikkushwah1411:Sushilkushwah@sushilnode.gxkj2.mongodb.net/devTinder"
+      // "mongodb+srv://sushildatabase1411:Sushil1411@sushilnode.z5tfj.mongodb.net/devtender"
     );
     // console.log("Database connection established successfully...");
   } catch (error) {
